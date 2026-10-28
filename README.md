@@ -33,14 +33,7 @@ In accounts payable and supply chain operations, manual verification of vendor i
 ---
 
 ### 📷 Visual Demonstration: Portal Dashboard Overview
-*Place your screenshot of the full portal dashboard below (`docs/images/01_portal_dashboard_overview.png`):*
-
-<!-- ![Vendor Invoice Intelligence Portal - Executive Dashboard](docs/images/01_portal_dashboard_overview.png) -->
-
-```
-[ SCREENSHOT PLACEHOLDER 1: Vendor Invoice Intelligence Portal — Executive Dashboard ]
-(Recommended file path: docs/images/01_portal_dashboard_overview.png)
-```
+<img width="1914" height="934" alt="Vendor Invoice Intelligence Portal — Executive Dashboard" src="https://github.com/user-attachments/assets/861ee8c5-c08b-46a6-9914-96a9471d2d64" />
 
 ---
 
@@ -137,14 +130,7 @@ The primary data store is [`data/inventory.db`](data/inventory.db), an SQLite da
     * **Heteroskedastic Variance**: Residual dispersion expands significantly with volume (RMSE = **\$178.81**), with heavy positive outlier residuals reaching up to **+\$3,679.86** where expedited freight exceeded the standard linear rate card. High $R^2$ (96.99%) is heavily driven by large dollar variance, while heteroskedasticity indicates that relative confidence bands widen for high-spend orders.
 
 #### 📷 Visual Demonstration: Freight Cost Estimation Interface
-*Place your screenshot of the Freight Cost Prediction module and calculation results below (`docs/images/02_freight_cost_prediction_ui.png`):*
-
-<!-- ![Freight Cost Prediction Module UI](docs/images/02_freight_cost_prediction_ui.png) -->
-
-```
-[ SCREENSHOT PLACEHOLDER 2: Freight Cost Prediction UI & Estimation Breakdown ]
-(Recommended file path: docs/images/02_freight_cost_prediction_ui.png)
-```
+<img width="1911" height="940" alt="Freight Cost Prediction UI & Estimation Breakdown" src="https://github.com/user-attachments/assets/3d9e5b46-3879-4cc0-b7cd-a5fa8696c3d1" />
 
 <a id="invoice-risk-flagging-framework"></a>
 ### 4.2 Invoice Risk Flagging Framework
@@ -167,10 +153,24 @@ Before evaluating statistical probabilities, the pipeline applies exact arithmet
   3. `Freight`: Billed shipping and logistics cost (USD).
   4. `total_item_quantity`: Total physical units recorded as received at warehouse.
   5. `total_item_dollars`: Summed line-item receipt valuation (USD).
-* **Target Label Generation (Synthetic Ground Truth)**:
-  Training labels (`flag_invoice`) were generated using business heuristics rather than historical audit dispute logs:
-  $$\text{flag\_invoice} = 1 \iff |\text{invoice\_dollars} - \text{total\_item\_dollars}| > \$5.00 \quad \lor \quad \text{avg\_receiving\_delay} > 10.0\text{ days}$$
-  *Heuristic Nature*: Because ground truth labels reflect programmatic heuristics rather than verified fraud, chargebacks, or vendor disputes, the model learns a pattern recognizer for operational review urgency rather than a detector of confirmed dishonesty.
+- **Target Label Generation (Synthetic Ground Truth):** Training labels
+  (`flag_invoice`) were generated using business heuristics rather than
+  historical audit or dispute logs.
+
+  `flag_invoice = 1` if either condition is true:
+  1. `abs(invoice_dollars - total_item_dollars) > 5.00`
+  2. `avg_receiving_delay > 10 days`
+
+  Otherwise, `flag_invoice = 0`.
+
+  **Heuristic nature:** These labels are generated from programmatic
+  business rules, not verified fraud, chargebacks, or vendor disputes.
+  The classifier therefore learns patterns associated with operational
+  review urgency rather than confirmed dishonesty.
+
+#### 📷 Visual Demonstration: Invoice Risk Flagging
+<img width="1918" height="780" alt="Invoice Risk Flagging" src="https://github.com/user-attachments/assets/6761ca6f-ada9-4ccd-9f6c-3a6e614da0de" />
+
 
 #### 3. Multi-Partition Holdout Evaluation Comparison
 To verify that the model's reported metrics are not artifacts of historical test-set viewing, the frozen pipeline architecture was evaluated across multiple independent holdout partitions:
