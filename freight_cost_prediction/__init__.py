@@ -1,0 +1,4 @@
+"""
+Freight cost prediction package.
+"""
+
