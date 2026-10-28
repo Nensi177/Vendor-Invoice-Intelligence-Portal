@@ -107,9 +107,20 @@ The invoice risk pipeline decouples deterministic accounting verification from s
    * **Architecture**: `sklearn.pipeline.Pipeline` encapsulating `StandardScaler` and `RandomForestClassifier` (200 trees, min_samples_split=5).
    * **Fold Isolation**: `StandardScaler` is fitted strictly within each cross-validation training fold, preventing validation fold leakage.
    * **Features (5 variables)**: `invoice_quantity`, `invoice_dollars`, `Freight`, `total_item_quantity`, `total_item_dollars`.
-   * **Target Label Generation (Synthetic Ground Truth)**:
-     $$\text{flag\_invoice} = 1 \iff |\text{invoice\_dollars} - \text{total\_item\_dollars}| > \$5.00 \quad \lor \quad \text{avg\_receiving\_delay} > 10.0\text{ days}$$
-     *Heuristic Nature*: Ground truth labels reflect business rules rather than confirmed legal fraud or audit dispute records. The model serves as an operational review triage filter.
+   * **Target Label Generation (Synthetic Ground Truth):** Training labels
+  (`flag_invoice`) were generated using business heuristics rather than
+  historical audit or dispute logs.
+
+  `flag_invoice = 1` if either condition is true:
+  1. `abs(invoice_dollars - total_item_dollars) > 5.00`
+  2. `avg_receiving_delay > 10 days`
+
+  Otherwise, `flag_invoice = 0`.
+
+  **Heuristic nature:** These labels are generated from programmatic
+  business rules, not verified fraud, chargebacks, or vendor disputes.
+  The classifier therefore learns patterns associated with operational
+  review urgency rather than confirmed dishonesty.
 
 <img width="1918" height="780" alt="Invoice Risk Flagging" src="https://github.com/user-attachments/assets/6761ca6f-ada9-4ccd-9f6c-3a6e614da0de" />
 
