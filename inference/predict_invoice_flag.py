@@ -132,14 +132,21 @@ def predict_invoice_flag(input_data, model_path=None, scaler_path=None):
     X = input_df[REQUIRED_FEATURES].copy()
 
     # Apply preprocessing and model prediction
-    X_scaled = scaler.transform(X)
-    raw_predictions = model.predict(X_scaled).astype(int)
-
-    # Extract risk probability if supported
-    if hasattr(model, "predict_proba"):
-        probabilities = model.predict_proba(X_scaled)[:, 1]
+    if hasattr(model, "named_steps"):
+        # Model is an sklearn Pipeline containing preprocessing (StandardScaler)
+        raw_predictions = model.predict(X).astype(int)
+        if hasattr(model, "predict_proba"):
+            probabilities = model.predict_proba(X)[:, 1]
+        else:
+            probabilities = raw_predictions.astype(float)
     else:
-        probabilities = raw_predictions.astype(float)
+        # Fallback for standalone model using externally provided scaler
+        X_scaled = scaler.transform(X)
+        raw_predictions = model.predict(X_scaled).astype(int)
+        if hasattr(model, "predict_proba"):
+            probabilities = model.predict_proba(X_scaled)[:, 1]
+        else:
+            probabilities = raw_predictions.astype(float)
 
     input_df["Predicted_Flag"] = raw_predictions
     input_df["Risk_Score"] = np.round(probabilities, 4)

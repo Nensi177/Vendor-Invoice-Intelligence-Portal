@@ -1,4 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import (
     accuracy_score,
@@ -8,28 +10,41 @@ from sklearn.metrics import (
 )
 
 
-def train_random_forest(X_train, y_train):
-    rf = RandomForestClassifier(
-        random_state=42,
-        n_jobs=-1
-    )
+def build_invoice_pipeline():
+    """
+    Construct an sklearn Pipeline with StandardScaler and RandomForestClassifier.
+    Ensures preprocessing is encapsulated to prevent cross-validation fold leakage.
+    """
+    return Pipeline([
+        ("scaler", StandardScaler()),
+        ("classifier", RandomForestClassifier(
+            random_state=42
+        ))
+    ])
 
-    param_grid = {
-        "n_estimators": [100, 200, 300],
-        "max_depth": [None, 4, 5, 6],
-        "min_samples_split": [2, 3, 5],
-        "min_samples_leaf": [1, 2, 5],
-        "criterion": ["gini", "entropy"]
-    }
+
+def train_random_forest(X_train, y_train, param_grid=None, cv=5, n_jobs=1):
+    """
+    Train RandomForestClassifier through an sklearn Pipeline inside GridSearchCV.
+    StandardScaler is fitted strictly within each cross-validation training fold.
+    """
+    pipeline = build_invoice_pipeline()
+
+    if param_grid is None:
+        param_grid = {
+            "classifier__n_estimators": [100, 200],
+            "classifier__max_depth": [None, 6],
+            "classifier__min_samples_split": [2, 5],
+        }
 
     scorer = make_scorer(f1_score)
 
     grid_search = GridSearchCV(
-        estimator=rf,
+        estimator=pipeline,
         param_grid=param_grid,
         scoring=scorer,
-        cv=5,
-        n_jobs=-1,
+        cv=cv,
+        n_jobs=n_jobs,
         verbose=0
     )
 
@@ -46,3 +61,8 @@ def evaluate_classifier(model, X_test, y_test, model_name):
     print(f"\n{model_name} Performance")
     print(f"Accuracy: {accuracy:.2f}")
     print(report)
+
+    return {
+        "accuracy": accuracy,
+        "classification_report": report
+    }
